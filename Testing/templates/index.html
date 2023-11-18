@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e621 Downloader Control Panel</title>
+</head>
+<body>
+    <h1>e621 Downloader Control Panel</h1>
+
+    <h2>Current Settings</h2>
+    <p>URLs: {{ current_urls }}</p>
+    <p>Path: {{ current_path }}</p>
+
+    <h2>Update Settings</h2>
+    <form action="/update" method="post">
+        <label for="urls">URLs:</label>
+        <textarea name="urls" rows="4" cols="50">{{ current_urls }}</textarea>
+        <br>
+        <label for="path">Path:</label>
+        <input type="text" name="path" value="{{ current_path }}">
+        <br>
+        <input type="submit" value="Update">
+    </form>
+</body>
+</html>
