@@ -11,39 +11,48 @@ headers = {
 }
 
 def download_images(url, path):
-    try:
-        # Fetch HTML content of the URL with custom headers
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
+    page_number = 1  # Starting page number
+    while True:
+        try:
+            # Construct the URL with the page number
+            page_url = f"{url}&page={page_number}"
 
-        # Extract image URLs
-        image_urls = []
-        for img_tag in soup.find_all('img', src=True):
-            img_url = urljoin(url, img_tag['src'])
-            if img_url.startswith('https://static1.e621.net/data/preview/'):
-                # Replace 'preview' with 'sample' in the URL
-                img_url = img_url.replace('/preview/', '/sample/')
-                image_urls.append(img_url)
+            # Fetch HTML content of the URL with custom headers
+            response = requests.get(page_url, headers=headers)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
 
-        if not image_urls:
-            print(f"No eligible images found on {url}")
-            return
+            # Extract image URLs
+            image_urls = []
+            for img_tag in soup.find_all('img', src=True):
+                img_url = urljoin(url, img_tag['src'])
+                if img_url.startswith('https://static1.e621.net/data/preview/'):
+                    # Replace 'preview' with 'sample' in the URL
+                    img_url = img_url.replace('/preview/', '/sample/')
+                    image_urls.append(img_url)
 
-        # Download images
-        for img_url in image_urls:
-            filename = os.path.join(path, os.path.basename(img_url))
-            if not os.path.exists(filename):
-                img_response = requests.get(img_url, headers=headers)
-                img_response.raise_for_status()
-                with open(filename, 'wb') as f:
-                    f.write(img_response.content)
-                print(f"Downloaded: {filename}")
-            else:
-                print(f"Skipped already downloaded: {filename}")
+            if not image_urls:
+                print(f"No eligible images found on {page_url}")
+                break  # No more images on this page
 
-    except Exception as e:
-        print(f"Error processing URL {url}: {str(e)}")
+            # Download images
+            for img_url in image_urls:
+                filename = os.path.join(path, os.path.basename(img_url))
+                if not os.path.exists(filename):
+                    img_response = requests.get(img_url, headers=headers)
+                    img_response.raise_for_status()
+                    with open(filename, 'wb') as f:
+                        f.write(img_response.content)
+                    print(f"Downloaded: {filename}")
+                else:
+                    print(f"Skipped already downloaded: {filename}")
+
+            # Move to the next page
+            page_number += 1
+
+        except Exception as e:
+            print(f"Error processing URL {page_url}: {str(e)}")
+            break
 
 def main():
     # Get the directory of the script
